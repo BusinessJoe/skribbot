@@ -1,0 +1,5 @@
+*.swp
+*.png
+*.jpg
+__pycache__/
+venv/
