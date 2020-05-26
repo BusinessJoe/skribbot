@@ -31,6 +31,8 @@ def draw_pixels(bool_map):
 
     x2, y2 = x1 + width, y1 + height
 
+    # delay is required to give skribbl.io time to register the mouse moving
+    # without it streaks are occasionally drawn between points
     delay = 0.005
     m = mouse.Controller()
 
@@ -59,6 +61,7 @@ def draw_pixels(bool_map):
         m.release(mouse.Button.left)
         toggled = False
 
+# Click on the color in the palette specified by the index
 def set_color(idx):
     corner = palette_corner
     cell_size = 24
@@ -69,11 +72,13 @@ def set_color(idx):
     autopy.mouse.move(*color_pos)
     autopy.mouse.click()
 
+# Get positions of the canvas and palette on screen
 def on_click(x, y, button, pressed):
     global palette_corner
     global canvas_corners
 
-    if button == mouse.Button.left and not pressed:
+    if button == mouse.Button.left and pressed:
+        print(x, y)
         if palette_corner is None:
             palette_corner = x, y
         elif canvas_corners[0] is None:
@@ -83,23 +88,13 @@ def on_click(x, y, button, pressed):
             return False
 
 if __name__ == '__main__':
-    get_images.download_images(sys.argv[1])
-    get_images.pick_image()
-    get_images.clean_image_directory()
+    img = get_images.pick_dithered_image(' '.join(sys.argv[1:]))
 
+    print("Click on the white square of the palette, followed by the top-left corner of the canvas, then the bottom-right corner")
     with mouse.Listener(on_click=on_click) as listener:
         listener.join()
 
-    img = Image.open('images/.saved.jpg')
-
-    # Resize image to be at most 64x64
-    max_size = 64, 64
-    img.thumbnail(max_size)
-
-    pixels = manip_images.dither_convert(img)
-
-    pixels = pixels.astype(np.uint8)
-
+    pixels = np.array(img)
     channels = manip_images.separate_channels(pixels)
 
     for i, channel in enumerate(channels):

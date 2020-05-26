@@ -93,6 +93,7 @@ def dither_convert(img):
             except IndexError:
                 pass
 
+    pix = pix.astype(np.uint8)
     return pix
 
 def separate_channels(pixels):
